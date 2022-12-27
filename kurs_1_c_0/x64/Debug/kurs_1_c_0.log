@@ -1,5 +1,5 @@
 ﻿  Source.c
-C:\Users\smole\source\repos\kurs_1_c_0\kurs_1_c_0\Source.c(45,12): warning C4013: time: нет определения; предполагается "extern" с возвратом типа "int"
-C:\Users\smole\source\repos\kurs_1_c_0\kurs_1_c_0\Source.c(62,42): warning C4244: функция: преобразование "double" в "size_t", возможна потеря данных
-C:\Users\smole\source\repos\kurs_1_c_0\kurs_1_c_0\Source.c(108): warning C4172: возвращение адреса локальной или временной переменной : d_arr
+C:\Users\smole\source\repos\kurs_1_c_0\kurs_1_c_0\Source.c(46,12): warning C4013: time: нет определения; предполагается "extern" с возвратом типа "int"
+C:\Users\smole\source\repos\kurs_1_c_0\kurs_1_c_0\Source.c(80,42): warning C4244: функция: преобразование "double" в "size_t", возможна потеря данных
+C:\Users\smole\source\repos\kurs_1_c_0\kurs_1_c_0\Source.c(126): warning C4172: возвращение адреса локальной или временной переменной : arr_y
   kurs_1_c_0.vcxproj -> C:\Users\smole\source\repos\kurs_1_c_0\x64\Debug\kurs_1_c_0.exe

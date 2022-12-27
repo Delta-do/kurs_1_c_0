@@ -37,6 +37,7 @@ double F2(double x)
 	return y;
 }
 
+
 int rand_value(pF pf, double x1, double x2, int N)
 {
 	double x;
@@ -56,10 +57,27 @@ int rand_value(pF pf, double x1, double x2, int N)
 	return 0;
 }
 
+int count_negative(D_arr* arr)
+{
+	int k = 0;
+	puts("Отрицательные значения функции при табулировании");
+	for (int i = 0; i < arr->size; i++)
+	{
+		if (arr->p[i] < 0)
+		{
+			printf("%8.2lf\n", arr->p[i]);
+			k++;
+		}
+	}
+	printf("Количество отрицательных: %d\n", k);
+	return 0;
+}
+
+
 D_arr* tab_F(pF pf, double x1, double x2, double step, int isfile)
 {
-	D_arr d_arr;
-	d_arr.p = (double*)calloc((x2 - x1 + 2) / step, sizeof(double));
+	D_arr arr_y;
+	arr_y.p = (double*)calloc((x2 - x1 + 2) / step, sizeof(double));
 	int i = 0;
 	FILE *f = NULL;
 
@@ -86,15 +104,15 @@ D_arr* tab_F(pF pf, double x1, double x2, double step, int isfile)
 		}
 		else
 		{
-			d_arr.p[i] = pf(x);
-			printf("|| %5.2lf | %8.2lf ||\n", x, d_arr.p[i]);
+			arr_y.p[i] = pf(x);
+			printf("|| %5.2lf | %8.2lf ||\n", x, arr_y.p[i]);
 			if (isfile)
-				fprintf(f, "%5.2lf %8.2lf\n", x, d_arr.p[i]);
+				fprintf(f, "%5.2lf %8.2lf\n", x, arr_y.p[i]);
 			i++;
 		}
 	}
 	puts("======================");
-	d_arr.size = i;
+	arr_y.size = i;
 
 	if (isfile)
 	{
@@ -105,7 +123,7 @@ D_arr* tab_F(pF pf, double x1, double x2, double step, int isfile)
 		}
 	}
 	
-	return &d_arr;
+	return &arr_y;
 }
 
 int draw_F(pF pf, double x1, double x2)
@@ -169,7 +187,7 @@ int main()
 {
 	int v, t, N;
 	double x, y, x1, x2, h;
-	D_arr d_arr;
+	D_arr arr_y;
 	pF pf = F1;
 
 	{
@@ -243,15 +261,7 @@ int main()
 
 			y = pf(x);
 			printf("F(%lg) = %.4lg\n", x, y);
-
-			puts("Начать заново?");
-			puts(" 1 - Да");
-			puts(" 0 - Нет (выход)");
-			scanf("%d", &v);
-			if (v == 1)
-				main();
-			else
-				return 0;
+			break;
 		}
 		else
 		{
@@ -278,15 +288,7 @@ int main()
 				}
 
 				rand_value(pf, x1, x2, N);
-
-				puts("Начать заново?");
-				puts(" 1 - Да");
-				puts(" 0 - Нет (выход)");
-				scanf("%d", &v);
-				if (v == 1)
-					main();
-				else
-					return 0;
+				break;
 			}
 			else
 			{
@@ -342,20 +344,22 @@ int main()
 						puts("Куда вы хотите вывести значения?");
 						puts(" 1 - В файл и на консоль");
 						puts(" 0 - Только на консоль");
+						printf("> ");
 						scanf("%d", &v);
-						d_arr = *tab_F(pf, x1, x2, h, v);
+						arr_y = *tab_F(pf, x1, x2, h, v);
+
+						puts("Вывести только отрицательные значения функции?");
+						puts(" 1 - Да");
+						puts(" 0 - Нет");
+						printf("> ");
+						scanf("%d", &v);
+						if (v)
+							count_negative(&arr_y);
 					}
 					if (v == 7 || v == 8)
 						draw_F(pf, x1, x2);
 
-					puts("Начать заново?");
-					puts(" 1 - Да");
-					puts(" 0 - Нет (выход)");
-					scanf("%d", &v);
-					if (v == 1)
-						main();
-					else
-						return 0;
+					break;
 				}
 				else
 				{
@@ -374,12 +378,23 @@ int main()
 						if (v % 2 == 0)
 							pf = F2;
 						else pf = F1;
-						break;
 					}
 				}
 			}
 		}
 	}
+
+	puts("Начать заново?");
+	puts(" 1 - Да");
+	puts(" 0 - Нет (выход)");
+	scanf("%d", &v);
+	if (v == 1)
+	{
+		main();
+		return 0;
+	}
+	else
+		return 0;
 
 	return 0;
 }

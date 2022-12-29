@@ -108,6 +108,7 @@ D_arr* tab_F(pF pf, double x1, double x2, double step, int isfile)
 			printf("|| %5.2lf | %8.2lf ||\n", x, arr_y.p[i]);
 			if (isfile)
 				fprintf(f, "%5.2lf %8.2lf\n", x, arr_y.p[i]);
+				//fprintf(f, "%5d %8d\n", (int)x, (int)arr_y.p[i]);
 			i++;
 		}
 	}
@@ -124,6 +125,29 @@ D_arr* tab_F(pF pf, double x1, double x2, double step, int isfile)
 	}
 	
 	return &arr_y;
+}
+
+D_arr* sort_down_y(D_arr* arr)
+{
+	int j;
+	double temp;
+	for (int i = 1; i < arr->size; i++)
+	{
+		j = i;
+		temp = arr->p[j];
+		while ((arr->p[j - 1] < temp) && j)
+		{
+			arr->p[j] = arr->p[j - 1];
+			arr->p[j - 1] = temp;
+			j--;
+		}
+	}
+
+	for (int i = 0; i < arr->size; i++)
+	{
+		printf("%8.2lf\n", arr->p[i]);
+	}
+	return arr;
 }
 
 int draw_F(pF pf, double x1, double x2)
@@ -348,13 +372,24 @@ int main()
 						scanf("%d", &v);
 						arr_y = *tab_F(pf, x1, x2, h, v);
 
-						puts("Вывести только отрицательные значения функции?");
-						puts(" 1 - Да");
-						puts(" 0 - Нет");
+						puts("Что вы хотите сделать со значениями табулированной функции?");
+						puts(" 1 - Вывести только отрицательные значения функции");
+						puts(" 2 - Отсортировать значения функции по убыванию");
+						puts(" 0 - ничего");
 						printf("> ");
 						scanf("%d", &v);
-						if (v)
+
+						switch (v)
+						{
+						case 1:
+						{
 							count_negative(&arr_y);
+							break;
+						}
+						case 2:
+							arr_y = *sort_down_y(&arr_y);
+							break;
+						}
 					}
 					if (v == 7 || v == 8)
 						draw_F(pf, x1, x2);
@@ -395,6 +430,8 @@ int main()
 	}
 	else
 		return 0;
+
+	free(arr_y.p);
 
 	return 0;
 }

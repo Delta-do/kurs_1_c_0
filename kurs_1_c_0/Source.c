@@ -17,201 +17,27 @@ typedef struct D_arr {
 	int size;
 } D_arr;
 
-double F1(double x)
-{
-	double y = 0;
-	y = cos(M_PI * x) / x + x * sin(M_PI * x);
-	return y;
-}
+double F1(double x);
+double F2(double x);
 
-double F2(double x)
-{
-	double y = 0;
-	if (x <= 0)				// x <= 0
-		y = 1 + ((3 + x) / (1 + pow(x, 2)));
-	else
-		if (x > 0 && x < 1) // 0 < x < 1
-			y = pow(1 + pow(1 - x, 2), 0.5);
-		else				// x >= 1
-			y = (1 + x) / (1 + pow(cos(x), 2));
-	return y;
-}
+int rand_value(pF pf, D_arr arr, double x1, double x2, int N);
+int count_negative(D_arr* arr, D_arr* newarr);
 
+D_arr* tab_F(pF pf, double x1, double x2, double step, int isfile);
+int draw_F(pF pf, double x1, double x2);
 
-int rand_value(pF pf, double x1, double x2, int N)
-{
-	double x;
-	x1 += 0.001; //интервал
-
-	long lt = time(NULL);
-	int st = (unsigned)lt / 2;
-	srand(st);
-
-	for (int i = 0; i < N; i++)
-	{
-		printf("%2d) ", i + 1);
-		x = x1 + 1. * (x2 - x1) * rand() / RAND_MAX;
-		printf("F(%3.1lf) = %5.1lf\n", x, pf(x));
-	}
-
-	return 0;
-}
-
-int count_negative(D_arr* arr)
-{
-	int k = 0;
-	puts("Отрицательные значения функции при табулировании");
-	for (int i = 0; i < arr->size; i++)
-	{
-		if (arr->p[i] < 0)
-		{
-			printf("%8.2lf\n", arr->p[i]);
-			k++;
-		}
-	}
-	printf("Количество отрицательных: %d\n", k);
-	return 0;
-}
-
-
-D_arr* tab_F(pF pf, double x1, double x2, double step, int isfile)
-{
-	D_arr arr_y;
-	arr_y.p = (double*)calloc((x2 - x1 + 2) / step, sizeof(double));
-	int i = 0;
-	FILE *f = NULL;
-
-	if (isfile)
-	{
-		f = fopen("Tab_Func.txt", "w");
-		if (f == NULL)
-		{
-			puts("Ошибка при создании файла");
-			return NULL;
-		}
-		fprintf(f, "%5c %8s\n", 'x', "F(x)");
-	}
-
-	puts("======================");
-	printf("||   x   |   F(x)   ||\n");
-	puts("||------------------||");
-
-	for (double x = x1; x < x2; x += step)
-	{
-		if (pf == F1 && x == 0)
-		{
-			printf("|| %5.2lf |     -    ||\n", x);
-		}
-		else
-		{
-			arr_y.p[i] = pf(x);
-			printf("|| %5.2lf | %8.2lf ||\n", x, arr_y.p[i]);
-			if (isfile)
-				fprintf(f, "%5.2lf %8.2lf\n", x, arr_y.p[i]);
-				//fprintf(f, "%5d %8d\n", (int)x, (int)arr_y.p[i]);
-			i++;
-		}
-	}
-	puts("======================");
-	arr_y.size = i;
-
-	if (isfile)
-	{
-		if (fclose(f) == EOF)
-		{
-			puts("Ошибка при закрытии файла");
-			return NULL;
-		}
-	}
-	
-	return &arr_y;
-}
-
-D_arr* sort_down_y(D_arr* arr)
-{
-	int j;
-	double temp;
-	for (int i = 1; i < arr->size; i++)
-	{
-		j = i;
-		temp = arr->p[j];
-		while ((arr->p[j - 1] < temp) && j)
-		{
-			arr->p[j] = arr->p[j - 1];
-			arr->p[j - 1] = temp;
-			j--;
-		}
-	}
-
-	for (int i = 0; i < arr->size; i++)
-	{
-		printf("%8.2lf\n", arr->p[i]);
-	}
-	return arr;
-}
-
-int draw_F(pF pf, double x1, double x2)
-{
-	char screen[SCREENW][SCREENH];
-	double x, y[SCREENW];
-	double ymin = 0, ymax = 0;
-	double hx, hy;
-	int i, j;
-	int xz, yz;
-
-	hx = (x2 - x1) / (SCREENW - 1);
-
-	for (i = 0, x = x1; i < SCREENW; ++i, x += hx)
-	{
-		if (pf == F1 && x == 0) //учитываем область допустимых значений
-			y[i] = pf(x + 0.1);
-		else
-			y[i] = pf(x); //расчет значений функции для каждой точки поля вывода графика
-
-		if (y[i] < ymin) ymin = y[i];
-		if (y[i] > ymax) ymax = y[i];
-	}
-
-	hy = (ymax - ymin) / (SCREENH - 1);
-	yz = (int)floor(ymax / hy + 0.5);
-	xz = (int)floor((0. - x1) / hx + 0.5);
-
-	//построение осей и заполнение массива отображения пробелами
-
-	for (j = 0; j < SCREENH; ++j)
-		for (i = 0; i < SCREENW; ++i)
-		{
-			if (j == yz && i == xz) screen[i][j] = '+';
-			else if (j == yz) screen[i][j] = '-';
-			else if (i == xz) screen[i][j] = '|';
-			else screen[i][j] = ' ';
-		}
-
-	//определение положения значения функции на поле вывода
-
-	for (i = 0; i < SCREENW; ++i)
-	{
-		j = (int)floor((ymax - y[i]) / hy + 0.5);
-		screen[i][j] = '*';
-	}
-
-	//печать массива символов
-
-	for (j = 0; j < SCREENH; ++j)
-	{
-		for (i = 0; i < SCREENW; ++i)  putchar(screen[i][j]);
-		putchar('\n');
-	}
-
-	return 0;
-}
+D_arr* sort_down_y(D_arr* arr);
+int print_array(D_arr arr);
 
 
 int main()
 {
 	int v, t, N;
 	double x, y, x1, x2, h;
-	D_arr arr_y;
+	D_arr arr_y = {NULL, 0};
+	D_arr arr_rand = { NULL, 0 };
+	D_arr arr_neg = { NULL, 0 };
+
 	pF pf = F1;
 
 	{
@@ -264,7 +90,7 @@ int main()
 	if (v % 2 == 0)
 		pf = F2;
 
-	while (1)
+	while (v != 9)
 	{
 		if (v == 1 || v == 2)
 		{
@@ -311,7 +137,14 @@ int main()
 					scanf("%lg", &x2);
 				}
 
-				rand_value(pf, x1, x2, N);
+				arr_rand.size = N;
+				arr_rand.p = (double*)calloc(arr_rand.size, sizeof(double));
+
+				srand(time(NULL));
+				rand_value(pf, arr_rand, x1, x2, arr_rand.size);
+
+				puts("Массив значений функции по случайным аргументам");
+				print_array(arr_rand);
 				break;
 			}
 			else
@@ -383,11 +216,16 @@ int main()
 						{
 						case 1:
 						{
-							count_negative(&arr_y);
+							arr_neg.p = (double*)calloc(arr_y.size, sizeof(double));
+							puts("Отрицательные значения функции при табулировании");
+							arr_neg.size = count_negative(&arr_y, &arr_neg);
+							printf("Количество отрицательных: %d\n", arr_neg.size);
+							print_array(arr_neg);
 							break;
 						}
 						case 2:
 							arr_y = *sort_down_y(&arr_y);
+							print_array(arr_y);
 							break;
 						}
 					}
@@ -398,40 +236,229 @@ int main()
 				}
 				else
 				{
-					if (v == 9)
-						return 0;
-					else
-					{
-						do {
-							fseek(stdin, 0, SEEK_END); //очищаем поток ввода
-							puts("Введено некорректное значение");
-							puts("Введите другое значение");
-							printf("> ");
-							scanf("%d", &v);
-						} while (!(v >= 0 && v <= 9));
+					do {
+						fseek(stdin, 0, SEEK_END); //очищаем поток ввода
+						puts("Введено некорректное значение");
+						puts("Введите другое значение");
+						printf("> ");
+						scanf("%d", &v);
+					} while (!(v >= 0 && v <= 9));
 
-						if (v % 2 == 0)
-							pf = F2;
-						else pf = F1;
-					}
+					if (v % 2 == 0)
+						pf = F2;
+					else pf = F1;
 				}
 			}
 		}
 	}
 
-	puts("Начать заново?");
-	puts(" 1 - Да");
-	puts(" 0 - Нет (выход)");
-	scanf("%d", &v);
-	if (v == 1)
+	if (v != 9)
 	{
-		main();
-		return 0;
+		puts("Начать заново?");
+		puts(" 1 - Да");
+		puts(" 0 - Нет (выход)");
+		printf("> ");
+		scanf("%d", &v);
+		if (v == 1)
+		{
+			main();
+			return 0;
+		}
 	}
-	else
-		return 0;
 
-	free(arr_y.p);
+	if (arr_y.p != NULL)
+		free(arr_y.p);
+	if (arr_rand.p != NULL)
+		free(arr_rand.p);
+	if (arr_neg.p != NULL)
+		free(arr_neg.p);
+
+	return 0;
+}
+
+
+double F1(double x)
+{
+	double y = 0;
+	y = cos(M_PI * x) / x + x * sin(M_PI * x);
+	return y;
+}
+
+double F2(double x)
+{
+	double y = 0;
+	if (x <= 0)				// x <= 0
+		y = 1 + ((3 + x) / (1 + pow(x, 2)));
+	else
+		if (x > 0 && x < 1) // 0 < x < 1
+			y = pow(1 + pow(1 - x, 2), 0.5);
+		else				// x >= 1
+			y = (1 + x) / (1 + pow(cos(x), 2));
+	return y;
+}
+
+
+int rand_value(pF pf, D_arr arr, double x1, double x2, int N)
+{
+	double x;
+	x1 += 0.001; //интервал
+
+	for (int i = 0; i < N; i++)
+	{
+		x = x1 + 1. * (x2 - x1) * rand() / RAND_MAX;
+		arr.p[i] = pf(x);
+		//printf("F(%3.1lf) = %5.1lf\n", x, pf(x));
+	}
+	return 0;
+}
+
+int count_negative(D_arr* arr, D_arr* newarr)
+{
+	int k = 0;
+	for (int i = 0; i < arr->size; i++)
+	{
+		if (arr->p[i] < 0)
+		{
+			newarr->p[k] = arr->p[i];
+			k++;
+		}
+	}
+	return k;
+}
+
+
+D_arr* tab_F(pF pf, double x1, double x2, double step, int isfile)
+{
+	D_arr arr_y;
+	arr_y.p = (double*)calloc((x2 - x1 + 2) / step, sizeof(double));
+	int i = 0;
+	FILE* f = NULL;
+
+	if (isfile)
+	{
+		f = fopen("Tab_Func.txt", "w");
+		if (f == NULL)
+		{
+			puts("Ошибка при создании файла");
+			return NULL;
+		}
+		fprintf(f, "%5c %8s\n", 'x', "F(x)");
+	}
+
+	puts("======================");
+	printf("||   x   |   F(x)   ||\n");
+	puts("||------------------||");
+
+	for (double x = x1; x < x2; x += step)
+	{
+		if (pf == F1 && x == 0)
+		{
+			printf("|| %5.2lf |     -    ||\n", x);
+		}
+		else
+		{
+			arr_y.p[i] = pf(x);
+			printf("|| %5.2lf | %8.2lf ||\n", x, arr_y.p[i]);
+			if (isfile)
+				fprintf(f, "%5.2lf %8.2lf\n", x, arr_y.p[i]);
+			//fprintf(f, "%5d %8d\n", (int)x, (int)arr_y.p[i]);
+			i++;
+		}
+	}
+	puts("======================");
+	arr_y.size = i;
+
+	if (isfile)
+	{
+		if (fclose(f) == EOF)
+		{
+			puts("Ошибка при закрытии файла");
+			return NULL;
+		}
+	}
+
+	return &arr_y;
+}
+
+D_arr* sort_down_y(D_arr* arr)
+{
+	int j;
+	double temp;
+	for (int i = 1; i < arr->size; i++)
+	{
+		j = i;
+		temp = arr->p[j];
+		while ((arr->p[j - 1] < temp) && j) //
+		{
+			arr->p[j] = arr->p[j - 1];
+			arr->p[j - 1] = temp;
+			j--;
+		}
+	}
+	return arr;
+}
+
+int print_array(D_arr arr)
+{
+	for (int i = 0; i < arr.size; i++)
+	{
+		printf("arr[%2d] = %8.2lf\n", i, arr.p[i]);
+	}
+	return 0;
+}
+
+int draw_F(pF pf, double x1, double x2)
+{
+	char screen[SCREENW][SCREENH];
+	double x, y[SCREENW];
+	double ymin = 0, ymax = 0;
+	double hx, hy;
+	int i, j;
+	int xz, yz;
+
+	hx = (x2 - x1) / (SCREENW - 1);
+
+	for (i = 0, x = x1; i < SCREENW; ++i, x += hx)
+	{
+		if (pf == F1 && x == 0) //учитываем область допустимых значений
+			y[i] = pf(x + 0.1);
+		else
+			y[i] = pf(x); //расчет значений функции для каждой точки поля вывода графика
+
+		if (y[i] < ymin) ymin = y[i];
+		if (y[i] > ymax) ymax = y[i];
+	}
+
+	hy = (ymax - ymin) / (SCREENH - 1);
+	yz = (int)floor(ymax / hy + 0.5);
+	xz = (int)floor((0. - x1) / hx + 0.5);
+
+	//построение осей и заполнение массива отображения пробелами
+
+	for (j = 0; j < SCREENH; ++j)
+		for (i = 0; i < SCREENW; ++i)
+		{
+			if (j == yz && i == xz) screen[i][j] = '+';
+			else if (j == yz) screen[i][j] = '-';
+			else if (i == xz) screen[i][j] = '|';
+			else screen[i][j] = ' ';
+		}
+
+	//определение положения значения функции на поле вывода
+
+	for (i = 0; i < SCREENW; ++i)
+	{
+		j = (int)floor((ymax - y[i]) / hy + 0.5);
+		screen[i][j] = '*';
+	}
+
+	//печать массива символов
+
+	for (j = 0; j < SCREENH; ++j)
+	{
+		for (i = 0; i < SCREENW; ++i)  putchar(screen[i][j]);
+		putchar('\n');
+	}
 
 	return 0;
 }
